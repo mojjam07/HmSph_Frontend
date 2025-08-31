@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Check, X } from 'lucide-react';
-import ApiService from '../../api/ApiService';
+import reviewsAPI from '../../api/reviews';
 
 const ReviewsView = ({ reviews, agents }) => {
   const [reviewsData, setReviewsData] = useState([]);
@@ -17,7 +17,7 @@ const ReviewsView = ({ reviews, agents }) => {
       setLoading(true);
       setError(null);
 
-      const response = await ApiService.getReviews({
+      const response = await reviewsAPI.getReviews({
         page: 1,
         limit: 50
       });
@@ -33,7 +33,7 @@ const ReviewsView = ({ reviews, agents }) => {
 
   const handleApproveReview = async (reviewId) => {
     try {
-      await ApiService.approveReview(reviewId);
+      await reviewsAPI.approveReview(reviewId);
       loadReviews(); // Refresh the list
     } catch (err) {
       console.error('Failed to approve review:', err);
@@ -43,7 +43,7 @@ const ReviewsView = ({ reviews, agents }) => {
 
   const handleRejectReview = async (reviewId) => {
     try {
-      await ApiService.rejectReview(reviewId);
+      await reviewsAPI.rejectReview(reviewId);
       loadReviews(); // Refresh the list
     } catch (err) {
       console.error('Failed to reject review:', err);

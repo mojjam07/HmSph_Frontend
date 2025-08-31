@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './AgentDashboard/Sidebar';
 import Header from './AgentDashboard/Header';
 import StatsCards from './AgentDashboard/StatsCards';
@@ -9,7 +10,8 @@ import ApiService from '../api/ApiService';
 import { AuthContext } from '../context/AuthContext';
 
 const AgentDashboard = () => {
-  const { user, loading: authLoading } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { user, loading: authLoading, logout } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('properties');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,7 +40,7 @@ const AgentDashboard = () => {
     size: '',
     images: [],
     features: [],
-    status: 'active'
+    status: 'pending'
   });
 
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -196,7 +198,7 @@ const AgentDashboard = () => {
       size: '',
       images: [],
       features: [],
-      status: 'active'
+      status: 'pending'
     });
     setSelectedProperty(null);
   };

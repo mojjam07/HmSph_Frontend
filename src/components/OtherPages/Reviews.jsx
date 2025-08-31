@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Star, 
-  MessageSquare, 
-  User, 
-  Calendar, 
-  ThumbsUp, 
+import {
+  Star,
+  MessageSquare,
+  User,
+  Calendar,
+  ThumbsUp,
   ThumbsDown,
   Search,
   CheckCircle,
   Shield,
   Users,
-  Award
+  Award,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { Link } from 'react-router-dom';
 import { reviewsAPI } from '../../api/reviews';
 import Navigation from '../LandingPage/Navigation';
 import Footer from '../LandingPage/Footer';
+import ReviewModal from './ReviewModal';
 
 const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) => {
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +41,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
   // Calculate review statistics
   const reviewStats = {
     totalReviews: reviews.length,
-    averageRating: reviews.length > 0 
+    averageRating: reviews.length > 0
       ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
       : 4.8,
     ratingDistribution: {
@@ -56,19 +61,19 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await reviewsAPI.getReviews();
       console.log('Reviews data received:', data);
-      
+
       // Ensure data is an array
       const reviewsArray = Array.isArray(data) ? data : data.reviews || [];
       setReviews(reviewsArray);
     } catch (err) {
       console.error('Error fetching reviews:', err);
-      
+
       // Provide more specific error messages
       let errorMessage = 'Failed to load reviews';
-      
+
       if (err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
         errorMessage = 'Unable to connect to the server. Please check your internet connection.';
       } else if (err.message.includes('401')) {
@@ -80,7 +85,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
       } else {
         errorMessage = err.message || 'Failed to load reviews. Please try again later.';
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -117,31 +122,39 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
     }
   };
 
+  const handleWriteReview = () => {
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSubmitted = () => {
+    fetchReviews(); // Refresh reviews after submission
+  };
+
   const getFilteredReviews = () => {
     let filtered = [...reviews];
-    
+
     // Apply rating filter
     if (ratingFilter !== 'all') {
       filtered = filtered.filter(review => review.rating === parseInt(ratingFilter));
     }
-    
+
     // Apply legacy filter (for backward compatibility)
     if (filter === 'positive') {
       filtered = filtered.filter(review => review.rating >= 4);
     } else if (filter === 'negative') {
       filtered = filtered.filter(review => review.rating <= 2);
     }
-    
+
     // Apply search query
     if (searchQuery) {
-      filtered = filtered.filter(review => 
+      filtered = filtered.filter(review =>
         review.comment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         review.User?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         review.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         review.Property?.title?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     // Apply sorting
     switch (sortBy) {
       case 'newest':
@@ -187,26 +200,51 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Reviews</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={fetchReviews}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Try Again
-            </button>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              Reload Page
-            </button>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation onShowRegistration={() => {}} onShowLogin={() => {}} token={token} user={user} onLogout={onLogout} />
+
+        {/* Hero Section */}
+        <section className="relative bg-gradient-to-r from-blue-900 via-purple-800 to-indigo-900 text-white">
+          <div className="absolute inset-0 bg-black opacity-40"></div>
+          <div className="relative min-h-[60vh] flex items-center justify-center">
+            <div className="max-w-7xl mx-auto px-6 text-center">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6">
+                Reviews from <span className="text-yellow-400">Our People</span>
+              </h1>
+              <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
+                Discover what our community says about their experiences
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* Error Section */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center mb-8">
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <div className="text-red-600 text-xl font-medium mb-2">Unable to load reviews</div>
+              <p className="text-red-500 mb-4">{error}</p>
+              <button
+                onClick={fetchReviews}
+                className="inline-flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Try Again</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <Footer />
+
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          propertyId="sample-property-id"
+          propertyTitle="Sample Property"
+          onReviewSubmitted={handleReviewSubmitted}
+        />
       </div>
     );
   }
@@ -214,6 +252,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation onShowRegistration={() => {}} onShowLogin={() => {}} token={token} user={user} onLogout={onLogout} />
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-900 via-purple-800 to-indigo-900 text-white">
         <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -225,7 +264,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
             <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
               Discover what our community says about their experiences
             </p>
-            
+
             <div className="bg-white rounded-2xl p-4 shadow-2xl max-w-3xl mx-auto">
               <div className="flex gap-4">
                 <div className="relative flex-1">
@@ -257,15 +296,15 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
               </div>
               <div className="flex justify-center mb-2">
                 {[1,2,3,4,5].map(s => (
-                  <Star 
-                    key={s} 
-                    className={`h-6 w-6 ${s <= Math.round(reviewStats.averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                  <Star
+                    key={s}
+                    className={`h-6 w-6 ${s <= Math.round(reviewStats.averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                   />
                 ))}
               </div>
               <p className="text-gray-600">Based on {reviewStats.totalReviews} reviews</p>
             </div>
-            
+
             <div className="lg:col-span-2">
               <h3 className="text-xl font-bold mb-6">Rating Distribution</h3>
               <div className="space-y-2">
@@ -276,8 +315,8 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
                     </div>
                     <div className="flex-1 bg-gray-200 rounded-full h-3">
-                      <div 
-                        className="bg-yellow-400 h-3 rounded-full transition-all duration-500" 
+                      <div
+                        className="bg-yellow-400 h-3 rounded-full transition-all duration-500"
                         style={{width: `${getRatingPercentage(rating)}%`}}
                       ></div>
                     </div>
@@ -345,8 +384,8 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
               <button
                 onClick={() => setFilter('positive')}
                 className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  filter === 'positive' 
-                    ? 'bg-green-600 text-white shadow-lg' 
+                  filter === 'positive'
+                    ? 'bg-green-600 text-white shadow-lg'
                     : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
@@ -355,8 +394,8 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
               <button
                 onClick={() => setFilter('negative')}
                 className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  filter === 'negative' 
-                    ? 'bg-red-600 text-white shadow-lg' 
+                  filter === 'negative'
+                    ? 'bg-red-600 text-white shadow-lg'
                     : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
@@ -366,7 +405,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
 
             {user && (
               <Link
-                to="/write-review"
+                onClick={handleWriteReview}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg"
               >
                 Write a Review
@@ -412,13 +451,13 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
                 <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-gray-900 mb-2">No reviews found</h3>
                 <p className="text-gray-600 mb-4">
-                  {searchQuery ? 'Try adjusting your search terms' : 
-                   filter === 'all' ? 'Be the first to write a review!' : 
+                  {searchQuery ? 'Try adjusting your search terms' :
+                   filter === 'all' ? 'Be the first to write a review!' :
                    `No ${filter} reviews found. Try a different filter.`}
                 </p>
                 {user && (
                   <Link
-                    to="/write-review"
+                    onClick={handleWriteReview}
                     className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
                     Write a Review
@@ -454,7 +493,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
                   {review.Property && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm text-gray-500">Property: </span>
-                      <Link 
+                      <Link
                         to={`/properties/${review.Property.id}`}
                         className="text-blue-600 hover:text-blue-800 font-medium"
                       >
@@ -522,7 +561,7 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
           <p className="text-xl mb-8">Help others make informed decisions</p>
           {user ? (
             <Link
-              to="/write-review"
+              onClick={handleWriteReview}
               className="inline-block bg-white text-blue-900 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors font-medium text-lg"
             >
               Write a Review
@@ -537,8 +576,16 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
           )}
         </div>
       </section>
-      
+
       <Footer />
+
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        propertyId="sample-property-id"
+        propertyTitle="Sample Property"
+        onReviewSubmitted={handleReviewSubmitted}
+      />
     </div>
   );
 };

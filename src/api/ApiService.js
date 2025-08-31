@@ -137,10 +137,16 @@ class ApiService {
   }
 
   // Agent management endpoints
-  static async updateAgentStatus(agentId, status) {
-    const response = await this.request(`/admin/agents/${agentId}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status })
+  static async approveAgent(agentId) {
+    const response = await this.request(`/admin/agents/${agentId}/approve`, {
+      method: 'POST'
+    });
+    return response;
+  }
+
+  static async rejectAgent(agentId) {
+    const response = await this.request(`/admin/agents/${agentId}/reject`, {
+      method: 'POST'
     });
     return response;
   }
@@ -148,6 +154,42 @@ class ApiService {
   static async getAgentDetails(agentId) {
     const response = await this.request(`/admin/agents/${agentId}`);
     return response.agent || response;
+  }
+
+  // Property approval endpoints for admin
+  static async getAdminProperties(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await this.request(`/admin/properties${queryString ? `?${queryString}` : ''}`);
+    return response;
+  }
+
+  static async approveProperty(propertyId) {
+    const response = await this.request(`/admin/properties/${propertyId}/approve`, {
+      method: 'POST'
+    });
+    return response;
+  }
+
+  static async rejectProperty(propertyId) {
+    const response = await this.request(`/admin/properties/${propertyId}/reject`, {
+      method: 'POST'
+    });
+    return response;
+  }
+
+  // Leads/Contact management endpoints
+  static async getAdminLeads(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await this.request(`/admin/leads${queryString ? `?${queryString}` : ''}`);
+    return response;
+  }
+
+  static async updateContactStatus(contactId, status) {
+    const response = await this.request(`/admin/contacts/${contactId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+    return response;
   }
 }
 

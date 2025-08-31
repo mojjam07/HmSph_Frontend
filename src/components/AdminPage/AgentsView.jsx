@@ -45,13 +45,23 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
     loadAgents();
   };
 
-  const handleUpdateAgentStatus = async (agentId, newStatus) => {
+  const handleApproveAgent = async (agentId) => {
     try {
-      await ApiService.updateAgentStatus(agentId, newStatus);
+      await ApiService.approveAgent(agentId);
       loadAgents(); // Refresh the list
     } catch (err) {
-      console.error('Failed to update agent status:', err);
-      setError('Failed to update agent status');
+      console.error('Failed to approve agent:', err);
+      setError('Failed to approve agent');
+    }
+  };
+
+  const handleRejectAgent = async (agentId) => {
+    try {
+      await ApiService.rejectAgent(agentId);
+      loadAgents(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to reject agent:', err);
+      setError('Failed to reject agent');
     }
   };
 
@@ -108,9 +118,9 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
               className="px-4 py-2 border border-gray-300 rounded-md"
             >
               <option value="all">All Status</option>
-              <option value="approved">Approved</option>
-              <option value="pending">Pending</option>
-              <option value="rejected">Rejected</option>
+              <option value="APPROVED">Approved</option>
+              <option value="PENDING">Pending</option>
+              <option value="REJECTED">Rejected</option>
             </select>
           </div>
         </div>
@@ -164,21 +174,15 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
                     <div className="text-sm text-gray-500">{agent.phone}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <select
-                      value={agent.verificationStatus}
-                      onChange={(e) => handleUpdateAgentStatus(agent.agentId, e.target.value)}
-                      className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full border-0 ${
-                        agent.verificationStatus === 'approved'
-                          ? 'bg-green-100 text-green-800'
-                          : agent.verificationStatus === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      agent.verificationStatus === 'APPROVED'
+                        ? 'bg-green-100 text-green-800'
+                        : agent.verificationStatus === 'PENDING'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {agent.verificationStatus}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -193,15 +197,34 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
                     {agent.currentMonthListings}/{agent.listingLimits}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setSelectedAgent(agent)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {agent.verificationStatus === 'PENDING' ? (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleApproveAgent(agent.agentId)}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectAgent(agent.agentId)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setSelectedAgent(agent)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button className="text-red-600 hover:text-red-900">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

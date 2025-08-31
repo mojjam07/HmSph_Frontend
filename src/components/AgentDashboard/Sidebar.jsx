@@ -1,10 +1,10 @@
 import React from 'react';
 import { Building, Home, BarChart3, Mail, Users, Settings, LogOut } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab }) => (
+const Sidebar = ({ activeTab, setActiveTab, onNavigateHome, onLogout }) => (
   <div className="w-64 bg-white shadow-lg h-screen fixed left-0 top-0 z-40">
     <div className="p-6 border-b border-gray-200">
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3 cursor-pointer" onClick={onNavigateHome}>
         <div className="bg-blue-600 p-2 rounded-lg">
           <Building className="h-6 w-6 text-white" />
         </div>
@@ -39,7 +39,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => (
     </nav>
 
     <div className="absolute bottom-6 left-6 right-6">
-      <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+      <button
+        onClick={onLogout}
+        className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+      >
         <LogOut className="h-5 w-5" />
         <span>Sign Out</span>
       </button>

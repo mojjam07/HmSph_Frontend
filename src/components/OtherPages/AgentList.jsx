@@ -84,19 +84,22 @@ const AgentsPage = ({ onLogin, token, user, onLogout }) => {
   const filteredAgents = agents.filter(agent => {
     if (!agent || typeof agent !== 'object') return false;
 
+    // Only show agents with APPROVED verification status
+    if (agent.verificationStatus !== 'APPROVED') return false;
+
     const matchesSearch = !searchQuery ||
       (agent.name && agent.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (agent.specialties && Array.isArray(agent.specialties) && 
-       agent.specialties.some(specialty => 
+      (agent.specialties && Array.isArray(agent.specialties) &&
+       agent.specialties.some(specialty =>
          typeof specialty === 'string' && specialty.toLowerCase().includes(searchQuery.toLowerCase())
        ));
 
-    const matchesLocation = selectedLocation === 'all' || 
+    const matchesLocation = selectedLocation === 'all' ||
       (agent.location && agent.location === selectedLocation);
 
     const matchesSpecialty = selectedSpecialty === 'all' ||
-      (agent.specialties && Array.isArray(agent.specialties) && 
-       agent.specialties.some(specialty => 
+      (agent.specialties && Array.isArray(agent.specialties) &&
+       agent.specialties.some(specialty =>
          typeof specialty === 'string' && specialty.toLowerCase().includes(selectedSpecialty.toLowerCase())
        ));
 

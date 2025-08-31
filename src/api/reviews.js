@@ -19,7 +19,7 @@ export const reviewsAPI = {
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      return []; // Return empty array instead of throwing
+      throw error; // Throw error instead of returning empty array
     }
   },
 
@@ -38,7 +38,7 @@ export const reviewsAPI = {
       }
     } catch (error) {
       console.error(`Error fetching reviews for property ${propertyId}:`, error);
-      return []; // Return empty array instead of throwing
+      throw error; // Throw error instead of returning empty array
     }
   },
 
@@ -57,7 +57,7 @@ export const reviewsAPI = {
       }
     } catch (error) {
       console.error(`Error fetching reviews for agent ${agentId}:`, error);
-      return []; // Return empty array instead of throwing
+      throw error; // Throw error instead of returning empty array
     }
   },
 
@@ -125,7 +125,7 @@ export const reviewsAPI = {
       }
     } catch (error) {
       console.error(`Error fetching reviews for user ${userId}:`, error);
-      return []; // Return empty array instead of throwing
+      throw error; // Throw error instead of returning empty array
     }
   },
 
@@ -138,7 +138,51 @@ export const reviewsAPI = {
       console.error('Error fetching review stats:', error);
       throw new Error(error.message || 'Failed to fetch review statistics');
     }
+  },
+
+  // Get pending reviews (admin only)
+  async getPendingReviews() {
+    try {
+      const response = await apiRequest('/api/admin/reviews/pending');
+      return response;
+    } catch (error) {
+      console.error('Error fetching pending reviews:', error);
+      throw new Error(error.message || 'Failed to fetch pending reviews');
+    }
+  },
+
+  // Approve a review (admin only)
+  async approveReview(reviewId) {
+    try {
+      const response = await apiRequest(`/api/admin/reviews/${reviewId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error(`Error approving review ${reviewId}:`, error);
+      throw new Error(error.message || 'Failed to approve review');
+    }
+  },
+
+  // Reject a review (admin only)
+  async rejectReview(reviewId) {
+    try {
+      const response = await apiRequest(`/api/admin/reviews/${reviewId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error(`Error rejecting review ${reviewId}:`, error);
+      throw new Error(error.message || 'Failed to reject review');
+    }
   }
 };
 
 export default reviewsAPI;
+

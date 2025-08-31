@@ -1,32 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, MessageSquare, Edit3, Heart } from 'lucide-react';
+import { Plus, Eye, MessageSquare, Edit3, Heart, CheckCircle, XCircle, Filter } from 'lucide-react';
 import ApiService from '../../api/ApiService';
 
 const ListingsView = ({ listings, setSelectedListing }) => {
   const [listingsData, setListingsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadListings();
-  }, []);
+  }, [statusFilter, searchQuery]);
 
   const loadListings = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await ApiService.getProperties({
+      const response = await ApiService.getAdminProperties({
         page: 1,
-        limit: 50
+        limit: 50,
+        status: statusFilter,
+        search: searchQuery
       });
 
-      setListingsData(response || []);
+      setListingsData(response.properties || []);
     } catch (err) {
       console.error('Failed to load listings:', err);
       setError('Failed to load listings data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async (propertyId) => {
+    try {
+      await ApiService.approveProperty(propertyId);
+      // Reload listings to reflect the change
+      loadListings();
+    } catch (err) {
+      console.error('Failed to approve property:', err);
+      setError('Failed to approve property');
+    }
+  };
+
+  const handleReject = async (propertyId) => {
+    try {
+      await ApiService.rejectProperty(propertyId);
+      // Reload listings to reflect the change
+      loadListings();
+    } catch (err) {
+      console.error('Failed to reject property:', err);
+      setError('Failed to reject property');
     }
   };
 
