@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import Sidebar from './AgentDashboard/Sidebar';
 import Header from './AgentDashboard/Header';
 import StatsCards from './AgentDashboard/StatsCards';
@@ -6,22 +6,24 @@ import ErrorAlert from './AgentDashboard/ErrorAlert';
 import LoadingOverlay from './AgentDashboard/LoadingOverlay';
 import PropertyForm from './AgentDashboard/PropertyForm';
 import ApiService from '../api/ApiService';
+import { AuthContext } from '../context/AuthContext';
 
 const AgentDashboard = () => {
+  const { user, loading: authLoading } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('properties');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddProperty, setShowAddProperty] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
-  
+
   const [agentData, setAgentData] = useState(null);
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [userRole, setUserRole] = useState('agent');
-  
+
   const [propertyForm, setPropertyForm] = useState({
     title: '',
     description: '',
@@ -43,34 +45,12 @@ const AgentDashboard = () => {
 
   // Load initial data and user info
   useEffect(() => {
-    loadUserData();
-    loadAgentProperties();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
-      
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        setAgentData(user);
-        setUserRole(user.role || 'agent');
-      } else if (token) {
-        try {
-          const agentProfile = await ApiService.getAgentProfile();
-          setAgentData(agentProfile);
-          setUserRole(agentProfile.role || 'agent');
-        } catch (error) {
-          console.error('Failed to load agent profile:', error);
-          setUserRole('agent');
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load user data:', err);
-      setUserRole('agent');
+    if (user) {
+      setAgentData(user);
+      setUserRole(user.role || 'agent');
+      loadAgentProperties();
     }
-  };
+  }, [user]);
 
   const loadAgentProperties = async () => {
     setLoading(true);
@@ -185,7 +165,7 @@ const AgentDashboard = () => {
 
   const handleDeleteProperty = async (id) => {
     if (!window.confirm('Are you sure you want to delete this property?')) return;
-    
+
     setLoading(true);
     try {
       // Delete property using ApiService
@@ -228,18 +208,26 @@ const AgentDashboard = () => {
     return `₦${amount.toLocaleString()}`;
   };
 
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+
       <div className="flex-1 ml-64">
-        <Header 
-          activeTab={activeTab} 
-          loading={loading} 
-          agentData={agentData} 
-          handleRefresh={handleRefresh} 
+        <Header
+          activeTab={activeTab}
+          loading={loading}
+          agentData={agentData}
+          handleRefresh={handleRefresh}
         />
-        
+
         <main className="p-8">
           {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
           {loading && <LoadingOverlay />}
@@ -364,7 +352,7 @@ const AgentDashboard = () => {
                   <p className="text-gray-600">No analytics data available</p>
                 </div>
               )}
-              
+
               {analyticsData?.properties && analyticsData.properties.length > 0 && (
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Properties</h3>
