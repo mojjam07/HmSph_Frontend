@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Check, X } from 'lucide-react';
-import reviewsAPI from '../../api/reviews';
+import ApiService from '../../api/ApiService';
 
 const ReviewsView = ({ reviews, agents }) => {
   const [reviewsData, setReviewsData] = useState([]);
@@ -17,15 +17,18 @@ const ReviewsView = ({ reviews, agents }) => {
       setLoading(true);
       setError(null);
 
-      const response = await reviewsAPI.getReviews({
+      const response = await ApiService.getAdminPendingReviews({
         page: 1,
         limit: 50
       });
 
-      setReviewsData(response || []);
+      if (!response || !response.reviews) {
+        throw new Error('Invalid response from server');
+      }
+      setReviewsData(response.reviews);
     } catch (err) {
       console.error('Failed to load reviews:', err);
-      setError('Failed to load reviews data');
+      setError('Failed to load reviews data: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -33,7 +36,7 @@ const ReviewsView = ({ reviews, agents }) => {
 
   const handleApproveReview = async (reviewId) => {
     try {
-      await reviewsAPI.approveReview(reviewId);
+      await ApiService.approveReview(reviewId);
       loadReviews(); // Refresh the list
     } catch (err) {
       console.error('Failed to approve review:', err);
@@ -43,7 +46,7 @@ const ReviewsView = ({ reviews, agents }) => {
 
   const handleRejectReview = async (reviewId) => {
     try {
-      await reviewsAPI.rejectReview(reviewId);
+      await ApiService.rejectReview(reviewId);
       loadReviews(); // Refresh the list
     } catch (err) {
       console.error('Failed to reject review:', err);

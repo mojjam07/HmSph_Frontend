@@ -11,22 +11,31 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
 
   useEffect(() => {
     loadAgents();
-  }, []);
+  }, [searchTerm, statusFilter]);
 
   const loadAgents = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      console.log('Loading agents with params:', {
+        search: searchTerm || undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined
+      });
+
       const response = await ApiService.getAdminAgents({
         search: searchTerm || undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined
       });
 
-      setAgentsData(response.agents || []);
+      console.log('Agents API response:', response);
+      if (!response || !response.agents) {
+        throw new Error('Invalid response from server');
+      }
+      setAgentsData(response.agents);
     } catch (err) {
       console.error('Failed to load agents:', err);
-      setError('Failed to load agents data');
+      setError('Failed to load agents data: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -34,15 +43,10 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    // Debounce search
-    setTimeout(() => {
-      loadAgents();
-    }, 500);
   };
 
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
-    loadAgents();
   };
 
   const handleApproveAgent = async (agentId) => {

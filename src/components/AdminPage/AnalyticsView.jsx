@@ -4,6 +4,7 @@ import {
   Users, Building, DollarSign, Activity,
   Calendar, Download, Filter, RefreshCw
 } from 'lucide-react';
+import ApiService from '../../api/ApiService';
 
 const AnalyticsView = ({ analytics }) => {
   const [timeRange, setTimeRange] = useState('30d');
@@ -37,12 +38,17 @@ const AnalyticsView = ({ analytics }) => {
     }
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const analyticsData = await ApiService.getAdminAnalytics({ period: timeRange });
+      // Update analytics state or props here if needed
+      console.log('Fetched analytics data:', analyticsData);
+    } catch (error) {
+      console.error('Failed to fetch analytics data:', error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleExport = () => {
@@ -61,7 +67,11 @@ const AnalyticsView = ({ analytics }) => {
         <div className="flex items-center space-x-3">
           <select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
+            onChange={(e) => {
+              setTimeRange(e.target.value);
+              // Optionally refresh data when time range changes
+              // handleRefresh();
+            }}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
           >
             <option value="7d">Last 7 days</option>

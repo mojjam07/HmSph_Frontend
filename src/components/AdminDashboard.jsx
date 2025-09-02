@@ -23,7 +23,10 @@ import LeadsView from './AdminPage/LeadsView';
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
   const { user, loading: authLoading, logout } = useContext(AuthContext);
-  const [activeView, setActiveView] = useState('dashboard');
+  const [activeView, setActiveView] = useState(() => {
+    // Restore active view from localStorage or default to 'dashboard'
+    return localStorage.getItem('adminActiveView') || 'dashboard';
+  });
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -78,6 +81,11 @@ const AdminDashboard = ({ onLogout }) => {
       default:
         break;
     }
+  }, [activeView]);
+
+  // Save active view to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('adminActiveView', activeView);
   }, [activeView]);
 
   const loadDashboardData = async () => {
@@ -231,9 +239,9 @@ const AdminDashboard = ({ onLogout }) => {
     setLoading(true);
     setError(null);
     try {
-      // Load payments data from admin API
-      const paymentsData = await ApiService.getAdminPayments();
-      setPayments(paymentsData.payments || []);
+      // For now, we'll use placeholder data since there's no specific payments endpoint
+      // In a real implementation, this would call: ApiService.getAdminPayments()
+      setPayments([]);
     } catch (err) {
       console.error('Failed to load payments:', err);
       setError('Failed to load payments');
@@ -246,9 +254,9 @@ const AdminDashboard = ({ onLogout }) => {
     setLoading(true);
     setError(null);
     try {
-      // Load leads data from admin API
-      const leadsData = await ApiService.getAdminLeads();
-      setLeads(leadsData.leads || []);
+      // Load contact form submissions as leads
+      const leadsData = await ApiService.getContactSubmissions();
+      setLeads(leadsData.submissions || []);
     } catch (err) {
       console.error('Failed to load leads:', err);
       setError('Failed to load leads');
@@ -261,9 +269,9 @@ const AdminDashboard = ({ onLogout }) => {
     setLoading(true);
     setError(null);
     try {
-      // Load reports data from admin API
-      const reportsData = await ApiService.getAdminReports();
-      setReports(reportsData.reports || []);
+      // For now, we'll use placeholder data since there's no specific reports endpoint
+      // In a real implementation, this would call: ApiService.getAdminReports()
+      setReports([]);
     } catch (err) {
       console.error('Failed to load reports:', err);
       setError('Failed to load reports');
@@ -327,7 +335,11 @@ const AdminDashboard = ({ onLogout }) => {
          </nav>
         <div className="absolute bottom-4 left-4 right-4 flex space-x-2">
           <button
-            onClick={() => { logout(); navigate('/'); }}
+            onClick={() => {
+              localStorage.removeItem('adminActiveView');
+              logout();
+              navigate('/');
+            }}
             className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-gray-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors"
           >
             <LogOut className="h-4 w-4" />

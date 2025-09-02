@@ -25,10 +25,13 @@ const ListingsView = ({ listings, setSelectedListing }) => {
         search: searchQuery
       });
 
-      setListingsData(response.properties || []);
+      if (!response || !response.properties) {
+        throw new Error('Invalid response from server');
+      }
+      setListingsData(response.properties);
     } catch (err) {
       console.error('Failed to load listings:', err);
-      setError('Failed to load listings data');
+      setError('Failed to load listings data: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/';
 
 class ApiService {
   static async request(endpoint, options = {}) {
@@ -14,7 +14,10 @@ class ApiService {
     // Add auth token if available
     const token = localStorage.getItem('token');
     if (token) {
+      console.log('ApiService: Adding Authorization header with token:', token);
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log('ApiService: No token found in localStorage');
     }
 
     try {
@@ -36,17 +39,17 @@ class ApiService {
   // Properties API - Updated endpoints
   static async getProperties(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    const response = await this.request(`/properties${queryString ? `?${queryString}` : ''}`);
+    const response = await this.request(`/api/properties${queryString ? `?${queryString}` : ''}`);
     return response.properties || response; // Handle both formats
   }
 
   static async getProperty(id) {
-    const response = await this.request(`/properties/${id}`);
+    const response = await this.request(`/api/properties/${id}`);
     return response.property || response; // Handle both formats
   }
 
   static async createProperty(propertyData) {
-    const response = await this.request('/properties', {
+    const response = await this.request('/api/properties', {
       method: 'POST',
       body: JSON.stringify(propertyData),
     });
@@ -54,7 +57,7 @@ class ApiService {
   }
 
   static async updateProperty(id, propertyData) {
-    const response = await this.request(`/properties/${id}`, {
+    const response = await this.request(`/api/properties/${id}`, {
       method: 'PUT',
       body: JSON.stringify(propertyData),
     });
@@ -62,19 +65,19 @@ class ApiService {
   }
 
   static async deleteProperty(id) {
-    return this.request(`/properties/${id}`, {
+    return this.request(`/api/properties/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Agent/Profile API - Updated endpoints
   static async getAgentProfile() {
-    const response = await this.request('/agents/profile');
+    const response = await this.request('/api/agents/profile');
     return response.agent || response; // Handle both formats
   }
 
   static async updateAgentProfile(profileData) {
-    const response = await this.request('/agents/profile', {
+    const response = await this.request('/api/agents/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
@@ -83,7 +86,7 @@ class ApiService {
 
   // Analytics API - Updated endpoints
   static async getAnalytics() {
-    const response = await this.request('/agents/analytics');
+    const response = await this.request('/api/agents/analytics');
     return response.analytics || response; // Handle both formats
   }
 
@@ -94,7 +97,7 @@ class ApiService {
       formData.append('images', file);
     });
 
-    const response = await this.request('/upload/properties/images', {
+    const response = await this.request('/api/upload/properties/images', {
       method: 'POST',
       headers: {}, // Let browser set content-type for FormData
       body: formData,
@@ -104,74 +107,74 @@ class ApiService {
 
   // Additional agent-specific endpoints
   static async getAgentProperties(agentId) {
-    const response = await this.request(`/agents/${agentId}/properties`);
+    const response = await this.request(`/api/agents/${agentId}/properties`);
     return response.properties || response;
   }
 
   static async getAgentStats(agentId) {
-    const response = await this.request(`/agents/${agentId}/stats`);
+    const response = await this.request(`/api/agents/${agentId}/stats`);
     return response.stats || response;
   }
 
   // Admin-specific endpoints
   static async getAdminDashboardStats() {
-    const response = await this.request('/admin/dashboard/stats');
+    const response = await this.request('/api/admin/dashboard/stats');
     return response;
   }
 
   static async getAdminAgents(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    const response = await this.request(`/admin/agents${queryString ? `?${queryString}` : ''}`);
+    const response = await this.request(`/api/admin/agents${queryString ? `?${queryString}` : ''}`);
     return response;
   }
 
   static async getAdminAnalytics(period = '30d') {
-    const response = await this.request(`/admin/analytics?period=${period}`);
+    const response = await this.request(`/api/admin/analytics?period=${period}`);
     return response.analytics || response;
   }
 
   // Enhanced analytics for both admin and agent
   static async getDashboardAnalytics(period = '30d') {
-    const response = await this.request(`/agents/analytics?period=${period}`);
+    const response = await this.request(`/api/agents/analytics?period=${period}`);
     return response.analytics || response;
   }
 
   // Agent management endpoints
   static async approveAgent(agentId) {
-    const response = await this.request(`/admin/agents/${agentId}/approve`, {
+    const response = await this.request(`/api/admin/agents/${agentId}/approve`, {
       method: 'POST'
     });
     return response;
   }
 
   static async rejectAgent(agentId) {
-    const response = await this.request(`/admin/agents/${agentId}/reject`, {
+    const response = await this.request(`/api/admin/agents/${agentId}/reject`, {
       method: 'POST'
     });
     return response;
   }
 
   static async getAgentDetails(agentId) {
-    const response = await this.request(`/admin/agents/${agentId}`);
+    const response = await this.request(`/api/admin/agents/${agentId}`);
     return response.agent || response;
   }
 
   // Property approval endpoints for admin
   static async getAdminProperties(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    const response = await this.request(`/admin/properties${queryString ? `?${queryString}` : ''}`);
+    const response = await this.request(`/api/admin/properties${queryString ? `?${queryString}` : ''}`);
     return response;
   }
 
   static async approveProperty(propertyId) {
-    const response = await this.request(`/admin/properties/${propertyId}/approve`, {
+    const response = await this.request(`/api/admin/properties/${propertyId}/approve`, {
       method: 'POST'
     });
     return response;
   }
 
   static async rejectProperty(propertyId) {
-    const response = await this.request(`/admin/properties/${propertyId}/reject`, {
+    const response = await this.request(`/api/admin/properties/${propertyId}/reject`, {
       method: 'POST'
     });
     return response;
@@ -180,15 +183,43 @@ class ApiService {
   // Leads/Contact management endpoints
   static async getAdminLeads(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    const response = await this.request(`/admin/leads${queryString ? `?${queryString}` : ''}`);
+    const response = await this.request(`/api/admin/leads${queryString ? `?${queryString}` : ''}`);
     return response;
   }
 
   static async updateContactStatus(contactId, status) {
-    const response = await this.request(`/admin/contacts/${contactId}/status`, {
+    const response = await this.request(`/api/admin/contacts/${contactId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
     });
+    return response;
+  }
+
+  // Admin Reviews management endpoints
+  static async getAdminPendingReviews(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await this.request(`/api/admin/reviews/pending${queryString ? `?${queryString}` : ''}`);
+    return response;
+  }
+
+  static async approveReview(reviewId) {
+    const response = await this.request(`/api/admin/reviews/${reviewId}/approve`, {
+      method: 'POST'
+    });
+    return response;
+  }
+
+  static async rejectReview(reviewId) {
+    const response = await this.request(`/api/admin/reviews/${reviewId}/reject`, {
+      method: 'POST'
+    });
+    return response;
+  }
+
+  // Contact form submissions (for leads)
+  static async getContactSubmissions(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await this.request(`/api/contact/submissions${queryString ? `?${queryString}` : ''}`);
     return response;
   }
 }

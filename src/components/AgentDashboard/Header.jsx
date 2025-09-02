@@ -23,15 +23,16 @@ const Header = ({ activeTab, loading, agentData, handleRefresh }) => (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
         </button>
         
-        <div className="flex items-center space-x-3">
-          <img 
-            src={agentData?.avatar || '/api/placeholder/40/40'} 
+        <div className="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-lg">
+          <img
+            src={agentData?.avatar || '/api/placeholder/40/40'}
             alt={agentData?.name || 'Agent'}
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover border-2 border-blue-200"
           />
           <div>
-            <div className="font-medium text-gray-900">{agentData?.name || 'Loading...'}</div>
-            <div className="text-sm text-gray-500">Agent</div>
+            <div className="font-semibold text-gray-900">{agentData?.name || 'Loading...'}</div>
+            <div className="text-sm text-gray-600">{agentData?.email || ''}</div>
+            <div className="text-xs text-blue-600 font-medium capitalize">{agentData?.role || 'Agent'}</div>
           </div>
         </div>
       </div>

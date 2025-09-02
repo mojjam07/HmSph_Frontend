@@ -12,7 +12,12 @@ import { AuthContext } from '../context/AuthContext';
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, logout } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState('properties');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Initialize activeTab from localStorage if available, else default to 'properties'
+    const storedTab = localStorage.getItem('agentDashboardActiveTab');
+    const validTabs = ['properties', 'analytics', 'inquiries', 'profile', 'settings'];
+    return storedTab && validTabs.includes(storedTab) ? storedTab : 'properties';
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddProperty, setShowAddProperty] = useState(false);
@@ -44,6 +49,8 @@ const AgentDashboard = () => {
   });
 
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const [inquiriesData, setInquiriesData] = useState([]);
 
   // Load initial data and user info
   useEffect(() => {
@@ -103,6 +110,20 @@ const AgentDashboard = () => {
     }
   }, [activeTab, analyticsData]);
 
+  // Load profile data when profile tab is active
+  useEffect(() => {
+    if (activeTab === 'profile' && !profileData) {
+      loadProfileData();
+    }
+  }, [activeTab, profileData]);
+
+  // Load inquiries data when inquiries tab is active
+  useEffect(() => {
+    if (activeTab === 'inquiries' && inquiriesData.length === 0) {
+      loadInquiriesData();
+    }
+  }, [activeTab, inquiriesData]);
+
   const loadAnalyticsData = async () => {
     setLoading(true);
     setError(null);
@@ -117,9 +138,52 @@ const AgentDashboard = () => {
     }
   };
 
+  const loadProfileData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const profile = await ApiService.getAgentProfile();
+      setProfileData(profile);
+    } catch (err) {
+      console.error('Failed to load profile data:', err);
+      setError('Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadInquiriesData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // For now, we'll use a placeholder since there's no specific agent inquiries endpoint
+      // In a real implementation, this would call: ApiService.getAgentInquiries()
+      setInquiriesData([]);
+    } catch (err) {
+      console.error('Failed to load inquiries data:', err);
+      setError('Failed to load inquiries data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRefresh = () => {
     loadAgentProperties();
   };
+
+  const handleNavigateHome = () => {
+    navigate('/');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  // Persist activeTab to localStorage whenever it changes
+  React.useEffect(() => {
+    localStorage.setItem('agentDashboardActiveTab', activeTab);
+  }, [activeTab]);
 
   const handleAddProperty = async () => {
     setLoading(true);
@@ -220,7 +284,7 @@ const AgentDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onNavigateHome={handleNavigateHome} onLogout={handleLogout} />
 
       <div className="flex-1 ml-64">
         <Header
@@ -380,11 +444,74 @@ const AgentDashboard = () => {
             </div>
           )}
 
-          {activeTab === 'leads' && (
+          {activeTab === 'inquiries' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Leads</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Inquiries</h2>
               <div className="bg-white rounded-lg shadow-md p-6">
-                <p className="text-gray-600">Leads management coming soon...</p>
+                <p className="text-gray-600">Inquiries management coming soon...</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'profile' && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile</h2>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Name</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.name || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Phone</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.phone || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Role</label>
+                        <p className="mt-1 text-sm text-gray-900 capitalize">{agentData?.role || 'Agent'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Statistics</h3>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Total Properties</span>
+                        <span className="text-sm font-medium text-gray-900">{properties.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Active Properties</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {properties.filter(p => p.status === 'active').length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Pending Properties</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {properties.filter(p => p.status === 'pending').length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Member Since</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {agentData?.createdAt ? new Date(agentData.createdAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Edit Profile
+                  </button>
+                </div>
               </div>
             </div>
           )}
