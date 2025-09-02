@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit3, Trash2 } from 'lucide-react';
 import ApiService from '../../api/ApiService';
+import AgentForm from './AgentForm';
 
 const AgentsView = ({ agents, setSelectedAgent }) => {
   const [agentsData, setAgentsData] = useState([]);
@@ -8,6 +9,7 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showAgentForm, setShowAgentForm] = useState(false);
 
   useEffect(() => {
     loadAgents();
@@ -47,6 +49,25 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
 
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
+  };
+
+  const handleAddAgent = () => {
+    setShowAgentForm(true);
+  };
+
+  const handleAgentFormSave = async (agentData) => {
+    try {
+      await ApiService.createAgent(agentData);
+      setShowAgentForm(false);
+      loadAgents(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to create agent:', err);
+      setError('Failed to create agent: ' + (err.message || 'Unknown error'));
+    }
+  };
+
+  const handleAgentFormCancel = () => {
+    setShowAgentForm(false);
   };
 
   const handleApproveAgent = async (agentId) => {
@@ -95,7 +116,10 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Agents Management</h2>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+        <button
+          onClick={handleAddAgent}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Agent
         </button>
@@ -236,6 +260,13 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
           </table>
         </div>
       </div>
+
+      {showAgentForm && (
+        <AgentForm
+          onSave={handleAgentFormSave}
+          onCancel={handleAgentFormCancel}
+        />
+      )}
     </div>
   );
 };

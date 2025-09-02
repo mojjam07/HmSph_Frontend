@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, MessageSquare, Edit3, Heart, CheckCircle, XCircle, Filter } from 'lucide-react';
+import { Plus, Eye, MessageSquare, Edit3, Heart } from 'lucide-react';
 import ApiService from '../../api/ApiService';
+import ListingModal from './ListingModal';
 
 const ListingsView = ({ listings, setSelectedListing }) => {
   const [listingsData, setListingsData] = useState([]);
@@ -8,6 +9,8 @@ const ListingsView = ({ listings, setSelectedListing }) => {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showListingModal, setShowListingModal] = useState(false);
+  const [selectedListing, setSelectedListingState] = useState(null);
 
   useEffect(() => {
     loadListings();
@@ -40,7 +43,6 @@ const ListingsView = ({ listings, setSelectedListing }) => {
   const handleApprove = async (propertyId) => {
     try {
       await ApiService.approveProperty(propertyId);
-      // Reload listings to reflect the change
       loadListings();
     } catch (err) {
       console.error('Failed to approve property:', err);
@@ -51,12 +53,39 @@ const ListingsView = ({ listings, setSelectedListing }) => {
   const handleReject = async (propertyId) => {
     try {
       await ApiService.rejectProperty(propertyId);
-      // Reload listings to reflect the change
       loadListings();
     } catch (err) {
       console.error('Failed to reject property:', err);
       setError('Failed to reject property');
     }
+  };
+
+  const handleSaveListing = async (listingData) => {
+    try {
+      if (selectedListing) {
+        // Update existing listing
+        await ApiService.updateProperty(selectedListing.id, listingData);
+      } else {
+        // Create new listing
+        await ApiService.createAdminProperty(listingData);
+      }
+      setShowListingModal(false);
+      setSelectedListingState(null);
+      loadListings();
+    } catch (err) {
+      console.error('Failed to save listing:', err);
+      setError('Failed to save listing');
+    }
+  };
+
+  const handleNewListing = () => {
+    setSelectedListingState(null);
+    setShowListingModal(true);
+  };
+
+  const handleEditListing = (listing) => {
+    setSelectedListingState(listing);
+    setShowListingModal(true);
   };
 
   if (loading) {
@@ -85,11 +114,25 @@ const ListingsView = ({ listings, setSelectedListing }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Listings Management</h2>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+        <button 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+          onClick={handleNewListing}
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Listing
         </button>
       </div>
+
+      {showListingModal && (
+        <ListingModal
+          listing={selectedListing}
+          onClose={() => {
+            setShowListingModal(false);
+            setSelectedListingState(null);
+          }}
+          onSave={handleSaveListing}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {listingsData.map((listing) => (
@@ -113,8 +156,8 @@ const ListingsView = ({ listings, setSelectedListing }) => {
                 )}
               </div>
               <div className="absolute top-4 right-4">
-                <button className="bg-white rounded-full p-2 shadow">
-                  <Heart className="h-4 w-4 text-gray-600" />
+                <button className="bg-white rounded-full p-2 shadow" onClick={() => handleEditListing(listing)}>
+                  <Edit3 className="h-4 w-4 text-gray-600" />
                 </button>
               </div>
             </div>
@@ -159,12 +202,6 @@ const ListingsView = ({ listings, setSelectedListing }) => {
                     <span>{listing.analytics?.inquiries || 0}</span>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedListing(listing)}
-                  className="text-blue-600 hover:text-blue-900"
-                >
-                  <Edit3 className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>

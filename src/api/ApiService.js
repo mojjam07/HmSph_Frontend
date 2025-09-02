@@ -140,6 +140,14 @@ class ApiService {
   }
 
   // Agent management endpoints
+  static async createAgent(agentData) {
+    const response = await this.request('/api/admin/agents', {
+      method: 'POST',
+      body: JSON.stringify(agentData),
+    });
+    return response;
+  }
+
   static async approveAgent(agentId) {
     const response = await this.request(`/api/admin/agents/${agentId}/approve`, {
       method: 'POST'
@@ -164,6 +172,14 @@ class ApiService {
     const queryString = new URLSearchParams(params).toString();
     const response = await this.request(`/api/admin/properties${queryString ? `?${queryString}` : ''}`);
     return response;
+  }
+
+  static async createAdminProperty(propertyData) {
+    const response = await this.request('/api/admin/properties', {
+      method: 'POST',
+      body: JSON.stringify(propertyData),
+    });
+    return response.property || response;
   }
 
   static async approveProperty(propertyId) {
