@@ -1,7 +1,15 @@
 import React from 'react';
 import { Search, Building, Users, TrendingUp, Shield } from 'lucide-react';
+import Dropdown from '../common/Dropdown';
 
 const HeroSection = ({ searchQuery, setSearchQuery, selectedPropertyType, setSelectedPropertyType }) => {
+  const propertyTypeOptions = [
+    { value: 'all', label: 'All Types' },
+    { value: 'house', label: 'Houses' },
+    { value: 'apartment', label: 'Apartments' },
+    { value: 'land', label: 'Land' }
+  ];
+
   return (
     <section className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white">
       <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -40,16 +48,12 @@ const HeroSection = ({ searchQuery, setSearchQuery, selectedPropertyType, setSel
                   />
                 </div>
                 
-                <select
+                <Dropdown
+                  options={propertyTypeOptions}
                   value={selectedPropertyType}
                   onChange={(e) => setSelectedPropertyType(e.target.value)}
                   className="px-4 py-3 text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="all">All Types</option>
-                  <option value="house">Houses</option>
-                  <option value="apartment">Apartments</option>
-                  <option value="land">Land</option>
-                </select>
+                />
                 
                 <button className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all transform hover:scale-105 font-semibold shadow-lg">
                   Search

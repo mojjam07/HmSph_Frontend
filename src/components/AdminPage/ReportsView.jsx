@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Dropdown from '../common/Dropdown';
 
-const ReportsView = ({ reports, listings, users }) => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-2xl font-bold text-gray-900">Reports Management</h2>
-      <div className="flex space-x-2">
-        <select className="border border-gray-300 rounded-md px-3 py-2">
-          <option>All Reports</option>
-          <option>Pending</option>
-          <option>Investigating</option>
-          <option>Resolved</option>
-        </select>
+const ReportsView = ({ reports, listings, users }) => {
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const statusFilterOptions = [
+    { value: 'all', label: 'All Reports' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'investigating', label: 'Investigating' },
+    { value: 'resolved', label: 'Resolved' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Reports Management</h2>
+        <div className="flex space-x-2">
+          <Dropdown
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-48"
+          />
+        </div>
       </div>
-    </div>
 
     <div className="bg-white rounded-lg shadow">
       <div className="overflow-x-auto">
@@ -92,6 +103,7 @@ const ReportsView = ({ reports, listings, users }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default ReportsView;

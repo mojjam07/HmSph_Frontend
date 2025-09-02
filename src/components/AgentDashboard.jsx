@@ -8,6 +8,7 @@ import LoadingOverlay from './AgentDashboard/LoadingOverlay';
 import PropertyForm from './AgentDashboard/PropertyForm';
 import ApiService from '../api/ApiService';
 import { AuthContext } from '../context/AuthContext';
+import Dropdown from '../components/common/Dropdown';
 
 const AgentDashboard = () => {
   const navigate = useNavigate();
@@ -30,6 +31,13 @@ const AgentDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [userRole, setUserRole] = useState('agent');
+
+  const statusOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'sold', label: 'Sold' }
+  ];
 
   const [propertyForm, setPropertyForm] = useState({
     title: '',
@@ -320,16 +328,12 @@ const AgentDashboard = () => {
                   placeholder="Search properties..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
                 />
-                <select
+                <Dropdown
+                  options={statusOptions}
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="pending">Pending</option>
-                  <option value="sold">Sold</option>
-                </select>
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Phone } from 'lucide-react';
 import ApiService from '../../api/ApiService';
+import Dropdown from '../common/Dropdown';
 
 const LeadsView = ({ leads, listings, agents }) => {
   const [contactsData, setContactsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const statusFilterOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'new', label: 'New' },
+    { value: 'contacted', label: 'Contacted' },
+    { value: 'qualified', label: 'Qualified' },
+    { value: 'converted', label: 'Converted' }
+  ];
+
+  const contactStatusOptions = [
+    { value: 'NEW', label: 'New' },
+    { value: 'CONTACTED', label: 'Contacted' },
+    { value: 'QUALIFIED', label: 'Qualified' },
+    { value: 'CONVERTED', label: 'Converted' }
+  ];
 
   useEffect(() => {
     loadContacts();
@@ -97,17 +113,12 @@ const LeadsView = ({ leads, listings, agents }) => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Leads Management</h2>
         <div className="flex space-x-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2"
-          >
-            <option value="all">All Status</option>
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="qualified">Qualified</option>
-            <option value="converted">Converted</option>
-          </select>
+        <Dropdown
+          options={statusFilterOptions}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="w-48"
+        />
         </div>
       </div>
 
@@ -177,7 +188,8 @@ const LeadsView = ({ leads, listings, agents }) => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <select
+                      <Dropdown
+                        options={contactStatusOptions}
                         value={contact.status}
                         onChange={(e) => handleUpdateContactStatus(contact.id, e.target.value)}
                         className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full border-0 ${
@@ -187,12 +199,7 @@ const LeadsView = ({ leads, listings, agents }) => {
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}
-                      >
-                        <option value="NEW">New</option>
-                        <option value="CONTACTED">Contacted</option>
-                        <option value="QUALIFIED">Qualified</option>
-                        <option value="CONVERTED">Converted</option>
-                      </select>
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(contact.createdAt).toLocaleDateString()}

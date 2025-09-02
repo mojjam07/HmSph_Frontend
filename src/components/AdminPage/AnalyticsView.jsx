@@ -5,10 +5,18 @@ import {
   Calendar, Download, Filter, RefreshCw
 } from 'lucide-react';
 import ApiService from '../../api/ApiService';
+import Dropdown from '../common/Dropdown';
 
 const AnalyticsView = ({ analytics }) => {
   const [timeRange, setTimeRange] = useState('30d');
   const [loading, setLoading] = useState(false);
+
+  const timeRangeOptions = [
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
+    { value: '90d', label: 'Last 90 days' },
+    { value: '1y', label: 'Last year' }
+  ];
 
   // Mock analytics data - in real app this would come from props
   const mockAnalytics = {
@@ -65,20 +73,16 @@ const AnalyticsView = ({ analytics }) => {
           <p className="text-gray-600 mt-1">Comprehensive insights into your platform performance</p>
         </div>
         <div className="flex items-center space-x-3">
-          <select
+          <Dropdown
+            options={timeRangeOptions}
             value={timeRange}
             onChange={(e) => {
               setTimeRange(e.target.value);
               // Optionally refresh data when time range changes
               // handleRefresh();
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
-          </select>
+            className="w-48"
+          />
           <button
             onClick={handleRefresh}
             disabled={loading}

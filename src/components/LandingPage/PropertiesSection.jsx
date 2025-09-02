@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Filter, RefreshCw } from 'lucide-react';
 import PropertyCard from './PropertyCard';
 import { useProperties } from '../hook/useProperties';
+import Dropdown from '../common/Dropdown';
 
 const PropertiesSection = ({ initialFilters = {}, token = null }) => {
   const {
@@ -20,6 +21,21 @@ const PropertiesSection = ({ initialFilters = {}, token = null }) => {
     loadMore,
     retry,
   } = useProperties(initialFilters, token);
+
+  const propertyTypeOptions = [
+    { value: 'all', label: 'All Types' },
+    { value: 'apartment', label: 'Apartment' },
+    { value: 'house', label: 'House' },
+    { value: 'villa', label: 'Villa' },
+    { value: 'condo', label: 'Condo' }
+  ];
+
+  const priceRangeOptions = [
+    { value: 'all', label: 'All Prices' },
+    { value: 'under50', label: 'Under ₦50M' },
+    { value: '50to100', label: '₦50M - ₦100M' },
+    { value: 'over100', label: 'Over ₦100M' }
+  ];
 
   const handleClearFilters = () => {
     setSearchQuery('');
@@ -51,29 +67,20 @@ const PropertiesSection = ({ initialFilters = {}, token = null }) => {
             </div>
 
             {/* Property Type Filter */}
-            <select
+            <Dropdown
+              options={propertyTypeOptions}
               value={selectedPropertyType}
               onChange={(e) => setSelectedPropertyType(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Types</option>
-              <option value="apartment">Apartment</option>
-              <option value="house">House</option>
-              <option value="villa">Villa</option>
-              <option value="condo">Condo</option>
-            </select>
+            />
 
             {/* Price Range Filter */}
-            <select
+            <Dropdown
+              options={priceRangeOptions}
               value={priceRange}
               onChange={(e) => setPriceRange(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Prices</option>
-              <option value="under50">Under ₦50M</option>
-              <option value="50to100">₦50M - ₦100M</option>
-              <option value="over100">Over ₦100M</option>
-            </select>
+            />
             
             <button className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
               <Filter className="h-4 w-4" />

@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Check, X } from 'lucide-react';
 import ApiService from '../../api/ApiService';
+import Dropdown from '../common/Dropdown';
 
 const ReviewsView = ({ reviews, agents }) => {
   const [reviewsData, setReviewsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const statusFilterOptions = [
+    { value: 'all', label: 'All Reviews' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' }
+  ];
 
   useEffect(() => {
     loadReviews();
@@ -86,16 +94,12 @@ const ReviewsView = ({ reviews, agents }) => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Reviews Management</h2>
         <div className="flex space-x-2">
-          <select
+          <Dropdown
+            options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2"
-          >
-            <option value="all">All Reviews</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+            className="w-48"
+          />
         </div>
       </div>
 

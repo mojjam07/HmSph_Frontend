@@ -19,6 +19,7 @@ import PaymentsView from './AdminPage/PaymentsView';
 import ReportsView from './AdminPage/ReportsView';
 import AnalyticsView from './AdminPage/AnalyticsView';
 import LeadsView from './AdminPage/LeadsView';
+import Dropdown from '../components/common/Dropdown';
 
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -42,6 +43,14 @@ const AdminDashboard = ({ onLogout }) => {
   const [leads, setLeads] = useState([]);
   const [analytics, setAnalytics] = useState({});
   const [reports, setReports] = useState([]);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('7days');
+
+  const timeRangeOptions = [
+    { value: '7days', label: 'Last 7 days' },
+    { value: '30days', label: 'Last 30 days' },
+    { value: '3months', label: 'Last 3 months' }
+  ];
+
   const [dashboardStats, setDashboardStats] = useState({
     totalAgents: { value: 0, change: '+0%', trend: 'neutral' },
     activeListings: { value: 0, change: '+0%', trend: 'neutral' },
@@ -498,11 +507,12 @@ const AdminDashboard = ({ onLogout }) => {
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Performance Overview</h3>
-              <select className="text-sm border border-gray-300 rounded-lg px-3 py-1">
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>Last 3 months</option>
-              </select>
+              <Dropdown
+                options={timeRangeOptions}
+                value={selectedTimeRange}
+                onChange={(e) => setSelectedTimeRange(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1"
+              />
             </div>
             <div className="h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
               <div className="text-center text-gray-500">

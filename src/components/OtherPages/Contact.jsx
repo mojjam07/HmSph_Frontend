@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '../LandingPage/Navigation';
 import Footer from '../LandingPage/Footer';
-import { 
+import {
   MapPin, Phone, Mail, Clock, Send, CheckCircle,
   MessageSquare, Headphones, Building, Users,
   AlertCircle, Loader
 } from 'lucide-react';
 import { apiRequest } from '../../api/utils.js';
+import Dropdown from '../common/Dropdown';
 
 const ContactPage = ({ onLogin, token, user, onLogout }) => {
   const [formData, setFormData] = useState({
@@ -384,18 +385,12 @@ const ContactPage = ({ onLogin, token, user, onLogout }) => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Inquiry Type
                       </label>
-                      <select
-                        name="inquiryType"
+                      <Dropdown
+                        options={departments}
                         value={formData.inquiryType}
-                        onChange={handleInputChange}
+                        onChange={(e) => setFormData(prev => ({ ...prev, inquiryType: e.target.value }))}
                         className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        {departments.map(dept => (
-                          <option key={dept.value} value={dept.value}>
-                            {dept.label}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
                   </div>
                   

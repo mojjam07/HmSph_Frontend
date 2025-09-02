@@ -3,6 +3,7 @@ import Navigation from '../LandingPage/Navigation';
 import Footer from '../LandingPage/Footer';
 import { Search, MapPin, Star, Phone, Mail, MessageCircle, Award, Users, Home, AlertCircle } from 'lucide-react';
 import { agentsAPI } from '../../api/agents';
+import Dropdown from '../common/Dropdown';
 
 const AgentsPage = ({ onLogin, token, user, onLogout }) => {
   const [agents, setAgents] = useState([]);
@@ -13,6 +14,24 @@ const AgentsPage = ({ onLogin, token, user, onLogout }) => {
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
+
+  const locationOptions = [
+    { value: 'all', label: 'All Locations' },
+    { value: 'Lagos', label: 'Lagos' },
+    { value: 'Abuja', label: 'Abuja' },
+    { value: 'Port Harcourt', label: 'Port Harcourt' },
+    { value: 'Kano', label: 'Kano' },
+    { value: 'Ibadan', label: 'Ibadan' }
+  ];
+
+  const specialtyOptions = [
+    { value: 'all', label: 'All Specialties' },
+    { value: 'luxury', label: 'Luxury Homes' },
+    { value: 'commercial', label: 'Commercial' },
+    { value: 'residential', label: 'Residential' },
+    { value: 'investment', label: 'Investment' },
+    { value: 'land', label: 'Land Development' }
+  ];
 
   // Fetch agents from backend API
   useEffect(() => {
@@ -230,32 +249,20 @@ const AgentsPage = ({ onLogin, token, user, onLogout }) => {
                   />
                 </div>
                 <div>
-                  <select
+                  <Dropdown
+                    options={locationOptions}
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  >
-                    <option value="all">All Locations</option>
-                    <option value="Lagos">Lagos</option>
-                    <option value="Abuja">Abuja</option>
-                    <option value="Port Harcourt">Port Harcourt</option>
-                    <option value="Kano">Kano</option>
-                    <option value="Ibadan">Ibadan</option>
-                  </select>
+                  />
                 </div>
                 <div>
-                  <select
+                  <Dropdown
+                    options={specialtyOptions}
                     value={selectedSpecialty}
                     onChange={(e) => setSelectedSpecialty(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  >
-                    <option value="all">All Specialties</option>
-                    <option value="luxury">Luxury Homes</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="residential">Residential</option>
-                    <option value="investment">Investment</option>
-                    <option value="land">Land Development</option>
-                  </select>
+                  />
                 </div>
               </div>
             </div>

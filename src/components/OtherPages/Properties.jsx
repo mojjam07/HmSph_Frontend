@@ -4,10 +4,11 @@ import Navigation from '../LandingPage/Navigation';
 import Footer from '../LandingPage/Footer';
 import { Search, Filter, MapPin, Bed, Bath, Square, Heart, RefreshCw, AlertCircle } from 'lucide-react';
 import { usePropertiesData } from '../hook/usePropertiesData';
+import Dropdown from '../common/Dropdown';
 
 const PropertiesPage = ({ onLogin, token, user, onLogout }) => {
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const {
     listings,
     loading,
@@ -25,6 +26,31 @@ const PropertiesPage = ({ onLogin, token, user, onLogout }) => {
     toggleFavorite,
     retry,
   } = usePropertiesData();
+
+  const propertyTypeOptions = [
+    { value: 'all', label: 'All Types' },
+    { value: 'house', label: 'House' },
+    { value: 'apartment', label: 'Apartment' },
+    { value: 'villa', label: 'Villa' },
+    { value: 'condo', label: 'Condo' },
+    { value: 'commercial', label: 'Commercial' },
+    { value: 'land', label: 'Land' }
+  ];
+
+  const priceRangeOptions = [
+    { value: 'all', label: 'All Prices' },
+    { value: 'under50', label: 'Under ₦50M' },
+    { value: '50to100', label: '₦50M - ₦100M' },
+    { value: 'over100', label: 'Over ₦100M' }
+  ];
+
+  const sortByOptions = [
+    { value: 'newest', label: 'Newest First' },
+    { value: 'oldest', label: 'Oldest First' },
+    { value: 'price-low', label: 'Price: Low to High' },
+    { value: 'price-high', label: 'Price: High to Low' },
+    { value: 'featured', label: 'Featured First' }
+  ];
 
   const formatPrice = (amount) => {
     return new Intl.NumberFormat('en-NG', {
@@ -99,46 +125,30 @@ const PropertiesPage = ({ onLogin, token, user, onLogout }) => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
-                      <select
+                      <Dropdown
+                        options={propertyTypeOptions}
                         value={selectedPropertyType}
                         onChange={(e) => setSelectedPropertyType(e.target.value)}
                         className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900"
-                      >
-                        <option value="all">All Types</option>
-                        <option value="house">House</option>
-                        <option value="apartment">Apartment</option>
-                        <option value="villa">Villa</option>
-                        <option value="condo">Condo</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="land">Land</option>
-                      </select>
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                      <select
+                      <Dropdown
+                        options={priceRangeOptions}
                         value={priceRange}
                         onChange={(e) => setPriceRange(e.target.value)}
                         className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900"
-                      >
-                        <option value="all">All Prices</option>
-                        <option value="under50">Under ₦50M</option>
-                        <option value="50to100">₦50M - ₦100M</option>
-                        <option value="over100">Over ₦100M</option>
-                      </select>
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                      <select
+                      <Dropdown
+                        options={sortByOptions}
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                         className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900"
-                      >
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="price-low">Price: Low to High</option>
-                        <option value="price-high">Price: High to Low</option>
-                        <option value="featured">Featured First</option>
-                      </select>
+                      />
                     </div>
                   </div>
                   <div className="mt-4 flex justify-end">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import Dropdown from '../common/Dropdown';
 
 const AgentForm = ({ agent, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -39,6 +40,20 @@ const AgentForm = ({ agent, onSave, onCancel }) => {
       });
     }
   }, [agent]);
+
+  const verificationStatusOptions = [
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'APPROVED', label: 'Approved' },
+    { value: 'REJECTED', label: 'Rejected' },
+    { value: 'SUSPENDED', label: 'Suspended' }
+  ];
+
+  const subscriptionPlanOptions = [
+    { value: 'BASIC', label: 'Basic' },
+    { value: 'PRO', label: 'Pro' },
+    { value: 'PREMIUM', label: 'Premium' },
+    { value: 'ENTERPRISE', label: 'Enterprise' }
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -126,28 +141,18 @@ const AgentForm = ({ agent, onSave, onCancel }) => {
             onChange={handleChange}
             className="border border-gray-300 rounded-md px-3 py-2 w-full"
           />
-          <select
-            name="verificationStatus"
+          <Dropdown
+            options={verificationStatusOptions}
             value={formData.verificationStatus}
-            onChange={handleChange}
-            className="border border-gray-300 rounded-md px-3 py-2 w-full"
-          >
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="REJECTED">Rejected</option>
-            <option value="SUSPENDED">Suspended</option>
-          </select>
-          <select
-            name="subscriptionPlan"
+            onChange={(e) => setFormData(prev => ({ ...prev, verificationStatus: e.target.value }))}
+            className="w-full"
+          />
+          <Dropdown
+            options={subscriptionPlanOptions}
             value={formData.subscriptionPlan}
-            onChange={handleChange}
-            className="border border-gray-300 rounded-md px-3 py-2 w-full"
-          >
-            <option value="BASIC">Basic</option>
-            <option value="PRO">Pro</option>
-            <option value="PREMIUM">Premium</option>
-            <option value="ENTERPRISE">Enterprise</option>
-          </select>
+            onChange={(e) => setFormData(prev => ({ ...prev, subscriptionPlan: e.target.value }))}
+            className="w-full"
+          />
           <input
             type="text"
             name="profileImage"

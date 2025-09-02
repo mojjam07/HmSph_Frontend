@@ -20,6 +20,7 @@ import { reviewsAPI } from '../../api/reviews';
 import Navigation from '../LandingPage/Navigation';
 import Footer from '../LandingPage/Footer';
 import ReviewModal from './ReviewModal';
+import Dropdown from '../common/Dropdown';
 
 const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) => {
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -427,16 +428,17 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
                 ))}
               </select>
 
-              <select
+              <Dropdown
+                options={[
+                  { value: 'newest', label: 'Newest First' },
+                  { value: 'oldest', label: 'Oldest First' },
+                  { value: 'highest', label: 'Highest Rated' },
+                  { value: 'lowest', label: 'Lowest Rated' }
+                ]}
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="highest">Highest Rated</option>
-                <option value="lowest">Lowest Rated</option>
-              </select>
+              />
 
               <div className="text-sm text-gray-500 flex items-center">
                 Showing {filteredReviews.length} of {reviews.length} reviews

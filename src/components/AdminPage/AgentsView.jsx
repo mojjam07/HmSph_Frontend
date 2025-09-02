@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit3, Trash2 } from 'lucide-react';
 import ApiService from '../../api/ApiService';
 import AgentForm from './AgentForm';
+import Dropdown from '../common/Dropdown';
 
 const AgentsView = ({ agents, setSelectedAgent }) => {
   const [agentsData, setAgentsData] = useState([]);
@@ -112,6 +113,13 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
     );
   }
 
+  const statusOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'APPROVED', label: 'Approved' },
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'REJECTED', label: 'Rejected' }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -140,16 +148,12 @@ const AgentsView = ({ agents, setSelectedAgent }) => {
                 />
               </div>
             </div>
-            <select
+            <Dropdown
+              options={statusOptions}
               value={statusFilter}
               onChange={(e) => handleStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="all">All Status</option>
-              <option value="APPROVED">Approved</option>
-              <option value="PENDING">Pending</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
+              className="w-48"
+            />
           </div>
         </div>
 

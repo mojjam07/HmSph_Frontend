@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, MapPin, Camera, Video, Eye, MessageSquare, Edit3 } from 'lucide-react';
+import Dropdown from '../common/Dropdown';
 
 const ListingModal = ({ listing, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(!listing);
@@ -91,20 +92,20 @@ const ListingModal = ({ listing, onClose, onSave }) => {
               className="border border-gray-300 rounded-md px-3 py-2 w-full"
               required
             />
-            <select
-              name="propertyType"
+            <Dropdown
+              options={[
+                { value: '', label: 'Select Property Type' },
+                { value: 'HOUSE', label: 'House' },
+                { value: 'APARTMENT', label: 'Apartment' },
+                { value: 'CONDO', label: 'Condo' },
+                { value: 'TOWNHOUSE', label: 'Townhouse' },
+                { value: 'LAND', label: 'Land' },
+                { value: 'COMMERCIAL', label: 'Commercial' }
+              ]}
               value={formData.propertyType}
-              onChange={handleChange}
-              className="border border-gray-300 rounded-md px-3 py-2 w-full"
-            >
-              <option value="">Select Property Type</option>
-              <option value="HOUSE">House</option>
-              <option value="APARTMENT">Apartment</option>
-              <option value="CONDO">Condo</option>
-              <option value="TOWNHOUSE">Townhouse</option>
-              <option value="LAND">Land</option>
-              <option value="COMMERCIAL">Commercial</option>
-            </select>
+              onChange={(e) => setFormData(prev => ({ ...prev, propertyType: e.target.value }))}
+              className="w-full"
+            />
             <input
               type="text"
               name="address"

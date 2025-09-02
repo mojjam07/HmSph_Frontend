@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Dropdown from '../common/Dropdown';
 
 const ListingForm = ({ listing, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -175,15 +176,15 @@ const ListingForm = ({ listing, onSave, onCancel }) => {
               className="border border-gray-300 rounded-md px-3 py-2 w-full"
             />
           </div>
-          <select
-            name="status"
+          <Dropdown
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' }
+            ]}
             value={formData.status}
-            onChange={handleChange}
-            className="border border-gray-300 rounded-md px-3 py-2 w-full"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+            className="w-full"
+          />
           <div className="flex items-center space-x-4">
             <label className="inline-flex items-center">
               <input
