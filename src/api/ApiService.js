@@ -49,9 +49,22 @@ class ApiService {
   }
 
   static async createProperty(propertyData) {
+    // Transform propertyData to match backend expectations
+    const transformedData = {
+      ...propertyData,
+      city: propertyData.city || propertyData.area || '',
+      squareFootage: Number(propertyData.squareFootage || propertyData.size || 0),
+      zipCode: propertyData.zipCode || '',
+      price: Number(propertyData.price) || 0,
+      bedrooms: Number(propertyData.bedrooms) || 0,
+      bathrooms: Number(propertyData.bathrooms) || 0,
+      propertyType: propertyData.propertyType ? propertyData.propertyType.toUpperCase() : 'HOUSE',
+      status: propertyData.status ? propertyData.status.toUpperCase() : 'PENDING'
+    };
+
     const response = await this.request('/api/properties', {
       method: 'POST',
-      body: JSON.stringify(propertyData),
+      body: JSON.stringify(transformedData),
     });
     return response.property || response; // Handle both formats
   }
@@ -103,6 +116,19 @@ class ApiService {
       body: formData,
     });
     return response.imageUrls || response.urls || []; // Handle both formats
+  }
+
+  // Agent avatar upload API
+  static async uploadAgentAvatar(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await this.request('/api/upload/agents/avatar', {
+      method: 'POST',
+      headers: {}, // Let browser set content-type for FormData
+      body: formData,
+    });
+    return response.imageUrl || response.url; // Handle both formats
   }
 
   // Additional agent-specific endpoints

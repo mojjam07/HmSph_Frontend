@@ -417,16 +417,19 @@ const Reviews = ({ token: propToken, user: propUser, onLogout: propOnLogout }) =
           {/* Filters Section */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
             <div className="flex flex-col sm:flex-row gap-4">
-              <select
+              <Dropdown
+                options={[
+                  { value: 'all', label: 'All Ratings' },
+                  { value: 5, label: '5 Stars' },
+                  { value: 4, label: '4 Stars' },
+                  { value: 3, label: '3 Stars' },
+                  { value: 2, label: '2 Stars' },
+                  { value: 1, label: '1 Star' }
+                ]}
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Ratings</option>
-                {[5,4,3,2,1].map(r => (
-                  <option key={r} value={r}>{r} Stars</option>
-                ))}
-              </select>
+              />
 
               <Dropdown
                 options={[

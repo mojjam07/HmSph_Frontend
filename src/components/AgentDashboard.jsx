@@ -44,21 +44,38 @@ const AgentDashboard = () => {
     description: '',
     propertyType: 'apartment',
     address: '',
-    area: '',
+    city: '',
     state: 'Lagos',
+    zipCode: '',
     price: '',
     currency: '₦',
     bedrooms: '',
     bathrooms: '',
-    size: '',
+    squareFootage: '',
     images: [],
     features: [],
     status: 'pending'
   });
 
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+
   const [analyticsData, setAnalyticsData] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [inquiriesData, setInquiriesData] = useState([]);
+
+  const [settingsForm, setSettingsForm] = useState({
+    licenseNumber: '',
+    commissionRate: '',
+    specialties: '',
+    bio: '',
+    phone: '',
+    profileImage: ''
+  });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   // Load initial data and user info
   useEffect(() => {
@@ -69,13 +86,72 @@ const AgentDashboard = () => {
     }
   }, [user]);
 
+  // Load settings form data when agentData changes
+  useEffect(() => {
+    if (agentData) {
+      setSettingsForm({
+        licenseNumber: agentData.licenseNumber || '',
+        commissionRate: agentData.commissionRate !== undefined ? String(agentData.commissionRate) : '',
+        specialties: Array.isArray(agentData.specialties) ? agentData.specialties.join(', ') : '',
+        bio: agentData.bio || '',
+        phone: agentData.phone || '',
+        profileImage: agentData.profileImage || ''
+      });
+      setImagePreview(agentData.profileImage || '');
+    }
+  }, [agentData]);
+
+  // Handle image file selection
+  const handleImageSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setSelectedImageFile(file);
+    setUploadingImage(true);
+
+    try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+
+      // Upload the image
+      const imageUrl = await ApiService.uploadAgentAvatar(file);
+      setSettingsForm(prev => ({ ...prev, profileImage: imageUrl }));
+      setImagePreview(imageUrl);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+      setSelectedImageFile(null);
+      setImagePreview(agentData?.profileImage || '');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const loadAgentProperties = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Get agent properties using ApiService
+      // Get agent properties using ApiService - fetch all properties for the agent
       const propertiesData = await ApiService.getProperties();
-      setProperties(propertiesData.properties || propertiesData);
+      // Filter to only show properties created by this agent
+      const agentProperties = (propertiesData.properties || propertiesData).filter(
+        property => property.agentId === user?.id || property.agent?.userId === user?.id
+      );
+      setProperties(agentProperties);
     } catch (err) {
       console.error('Failed to load properties:', err);
       setError('Failed to load properties. Please try again.');
@@ -195,19 +271,30 @@ const AgentDashboard = () => {
 
   const handleAddProperty = async () => {
     setLoading(true);
+    setUploadingImages(true);
     try {
+      let imageUrls = [];
+      if (selectedFiles.length > 0) {
+        imageUrls = await ApiService.uploadImages(selectedFiles);
+      }
+      const propertyData = {
+        ...propertyForm,
+        images: imageUrls,
+      };
       // Create property using ApiService
-      const newProperty = await ApiService.createProperty(propertyForm);
+      const newProperty = await ApiService.createProperty(propertyData);
       // Reload properties to get the updated list
       await loadAgentProperties();
       setShowAddProperty(false);
       resetForm();
+      setSelectedFiles([]);
       setError(null);
     } catch (err) {
       console.error('Failed to add property:', err);
       setError(err.message || 'Failed to add property. Please try again.');
     } finally {
       setLoading(false);
+      setUploadingImages(false);
     }
   };
 
@@ -220,20 +307,31 @@ const AgentDashboard = () => {
 
   const handleUpdateProperty = async () => {
     setLoading(true);
+    setUploadingImages(true);
     try {
+      let imageUrls = propertyForm.images || [];
+      if (selectedFiles.length > 0) {
+        imageUrls = await ApiService.uploadImages(selectedFiles);
+      }
+      const propertyData = {
+        ...propertyForm,
+        images: imageUrls,
+      };
       // Update property using ApiService
-      await ApiService.updateProperty(selectedProperty.id, propertyForm);
+      await ApiService.updateProperty(selectedProperty.id, propertyData);
       // Reload properties to get the updated list
       await loadAgentProperties();
       setShowAddProperty(false);
       setIsEditing(false);
       resetForm();
+      setSelectedFiles([]);
       setError(null);
     } catch (err) {
       console.error('Failed to update property:', err);
       setError(err.message || 'Failed to update property. Please try again.');
     } finally {
       setLoading(false);
+      setUploadingImages(false);
     }
   };
 
@@ -261,17 +359,19 @@ const AgentDashboard = () => {
       description: '',
       propertyType: 'apartment',
       address: '',
-      area: '',
+      city: '',
       state: 'Lagos',
+      zipCode: '',
       price: '',
       currency: '₦',
       bedrooms: '',
       bathrooms: '',
-      size: '',
+      squareFootage: '',
       images: [],
       features: [],
       status: 'pending'
     });
+    setSelectedFiles([]);
     setSelectedProperty(null);
   };
 
@@ -481,6 +581,26 @@ const AgentDashboard = () => {
                         <label className="block text-sm font-medium text-gray-700">Role</label>
                         <p className="mt-1 text-sm text-gray-900 capitalize">{agentData?.role || 'Agent'}</p>
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">License Number</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.licenseNumber || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Commission Rate</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.commissionRate !== undefined ? `${(agentData.commissionRate * 100).toFixed(1)}%` : 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Specialties</label>
+                        <p className="mt-1 text-sm text-gray-900">{Array.isArray(agentData?.specialties) && agentData.specialties.length > 0 ? agentData.specialties.join(', ') : 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Bio</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.bio || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Verification Status</label>
+                        <p className="mt-1 text-sm text-gray-900">{agentData?.verificationStatus || 'Not set'}</p>
+                      </div>
                     </div>
                   </div>
                   <div>
@@ -512,7 +632,10 @@ const AgentDashboard = () => {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
                     Edit Profile
                   </button>
                 </div>
@@ -523,8 +646,116 @@ const AgentDashboard = () => {
           {activeTab === 'settings' && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <p className="text-gray-600">Settings page coming soon...</p>
+              <div className="bg-white rounded-lg shadow-md p-6 max-w-lg">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      const updatedProfile = {
+                        licenseNumber: settingsForm.licenseNumber,
+                        commissionRate: parseFloat(settingsForm.commissionRate),
+                        specialties: settingsForm.specialties.split(',').map(s => s.trim()).filter(s => s),
+                        bio: settingsForm.bio,
+                        phone: settingsForm.phone,
+                        profileImage: settingsForm.profileImage
+                      };
+                      await ApiService.updateAgentProfile(updatedProfile);
+                      setAgentData(prev => ({ ...prev, ...updatedProfile }));
+                      setError(null);
+                      alert('Profile updated successfully.');
+                    } catch (err) {
+                      console.error('Failed to update profile:', err);
+                      setError(err.message || 'Failed to update profile. Please try again.');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">License Number</label>
+                    <input
+                      type="text"
+                      value={settingsForm.licenseNumber}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, licenseNumber: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Commission Rate (0-1)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="1"
+                      value={settingsForm.commissionRate}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, commissionRate: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Specialties (comma separated)</label>
+                    <input
+                      type="text"
+                      value={settingsForm.specialties}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, specialties: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Bio</label>
+                    <textarea
+                      value={settingsForm.bio}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, bio: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <input
+                      type="tel"
+                      value={settingsForm.phone}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Profile Image</label>
+                    <div className="mt-1 flex items-center space-x-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        disabled={uploadingImage}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {uploadingImage && (
+                        <div className="text-sm text-gray-500">Uploading...</div>
+                      )}
+                    </div>
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img
+                          src={imagePreview}
+                          alt="Profile preview"
+                          className="w-20 h-20 object-cover rounded-full border border-gray-300"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {loading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  {error && (
+                    <p className="mt-2 text-red-600">{error}</p>
+                  )}
+                </form>
               </div>
             </div>
           )}
@@ -539,9 +770,9 @@ const AgentDashboard = () => {
           setShowAddProperty={setShowAddProperty}
           setIsEditing={setIsEditing}
           resetForm={resetForm}
-          selectedFiles={[]}
-          setSelectedFiles={() => {}}
-          uploadingImages={false}
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          uploadingImages={uploadingImages}
           handleAddProperty={handleAddProperty}
           handleUpdateProperty={handleUpdateProperty}
         />

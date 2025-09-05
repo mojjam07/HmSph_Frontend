@@ -108,13 +108,15 @@ export default function Profile() {
     );
   }
 
-  if (!profile) {
+  if (!profile || !profile.user) {
     return (
       <p className="max-w-md mx-auto mt-10 text-center text-gray-600">
         No profile data available.
       </p>
     );
   }
+
+  const profileUser = profile.user;
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
@@ -123,13 +125,13 @@ export default function Profile() {
         <LogoutButton onLogout={logout} />
       </div>
       <div className="space-y-3">
-        <p className="text-gray-700"><strong>Email:</strong> {profile.email}</p>
-        <p className="text-gray-700"><strong>First Name:</strong> {profile.firstName}</p>
-        <p className="text-gray-700"><strong>Last Name:</strong> {profile.lastName}</p>
-        {profile.businessName && (
-          <p className="text-gray-700"><strong>Business Name:</strong> {profile.businessName}</p>
+        <p className="text-gray-700"><strong>Email:</strong> {profileUser.email}</p>
+        <p className="text-gray-700"><strong>First Name:</strong> {profileUser.firstName}</p>
+        <p className="text-gray-700"><strong>Last Name:</strong> {profileUser.lastName}</p>
+        {profileUser.businessName && (
+          <p className="text-gray-700"><strong>Business Name:</strong> {profileUser.businessName}</p>
         )}
-        <p className="text-gray-700"><strong>Role:</strong> {profile.role || 'user'}</p>
+        <p className="text-gray-700"><strong>Role:</strong> {profileUser.role || 'user'}</p>
       </div>
     </div>
   );

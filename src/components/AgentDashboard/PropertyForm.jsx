@@ -1,5 +1,29 @@
-import React from 'react';
-import { X, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Camera, Trash2 } from 'lucide-react';
+import Dropdown from '../common/Dropdown';
+
+const propertyTypeOptions = [
+  { value: 'apartment', label: 'Apartment' },
+  { value: 'house', label: 'House' },
+  { value: 'duplex', label: 'Duplex' },
+  { value: 'bungalow', label: 'Bungalow' },
+  { value: 'land', label: 'Land' },
+  { value: 'commercial', label: 'Commercial' }
+];
+
+const stateOptions = [
+  { value: 'Lagos', label: 'Lagos' },
+  { value: 'Abuja', label: 'Abuja' },
+  { value: 'Rivers', label: 'Rivers' },
+  { value: 'Ogun', label: 'Ogun' }
+];
+
+const statusOptions = [
+  { value: 'active', label: 'Active' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'sold', label: 'Sold' },
+  { value: 'inactive', label: 'Inactive' }
+];
 
 const PropertyForm = ({
   isEditing,
@@ -13,7 +37,57 @@ const PropertyForm = ({
   uploadingImages,
   handleAddProperty,
   handleUpdateProperty
-}) => (
+}) => {
+  const [imagePreviews, setImagePreviews] = useState([]);
+
+  // Create image previews when files are selected
+  useEffect(() => {
+    if (selectedFiles.length > 0) {
+      const previews = selectedFiles.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(previews).then(setImagePreviews);
+    } else {
+      setImagePreviews([]);
+    }
+  }, [selectedFiles]);
+
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 10) {
+      alert('Maximum 10 images allowed');
+      return;
+    }
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        alert(`${file.name} is not a valid image file`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        alert(`${file.name} is too large. Maximum size is 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    setSelectedFiles(validFiles);
+  };
+
+  // Remove image from selection
+  const removeImage = (index) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+  };
+
+  return (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -48,23 +122,18 @@ const PropertyForm = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
-            <select
+            <Dropdown
+              options={propertyTypeOptions}
               value={propertyForm.propertyType}
               onChange={(e) => setPropertyForm({...propertyForm, propertyType: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="apartment">Apartment</option>
-              <option value="house">House</option>
-              <option value="duplex">Duplex</option>
-              <option value="bungalow">Bungalow</option>
-              <option value="land">Land</option>
-              <option value="commercial">Commercial</option>
-            </select>
+              placeholder="Select property type"
+              className="w-full"
+            />
           </div>
         </div>
 
         {/* Location */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
             <input
@@ -77,28 +146,36 @@ const PropertyForm = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Area</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
             <input
               type="text"
-              value={propertyForm.area}
-              onChange={(e) => setPropertyForm({...propertyForm, area: e.target.value})}
-              placeholder="e.g., Lekki, VI, Ikeja"
+              value={propertyForm.city}
+              onChange={(e) => setPropertyForm({...propertyForm, city: e.target.value})}
+              placeholder="e.g., Lagos, Abuja"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-            <select
+            <Dropdown
+              options={stateOptions}
               value={propertyForm.state}
               onChange={(e) => setPropertyForm({...propertyForm, state: e.target.value})}
+              placeholder="Select state"
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Zip Code</label>
+            <input
+              type="text"
+              value={propertyForm.zipCode}
+              onChange={(e) => setPropertyForm({...propertyForm, zipCode: e.target.value})}
+              placeholder="e.g., 100001"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="Lagos">Lagos</option>
-              <option value="Abuja">Abuja</option>
-              <option value="Rivers">Rivers</option>
-              <option value="Ogun">Ogun</option>
-            </select>
+            />
           </div>
         </div>
 
@@ -140,12 +217,13 @@ const PropertyForm = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Square Footage</label>
             <input
-              type="text"
-              value={propertyForm.size}
-              onChange={(e) => setPropertyForm({...propertyForm, size: e.target.value})}
-              placeholder="e.g., 450sqm"
+              type="number"
+              value={propertyForm.squareFootage}
+              onChange={(e) => setPropertyForm({...propertyForm, squareFootage: e.target.value})}
+              placeholder="e.g., 450"
+              min="0"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -173,7 +251,7 @@ const PropertyForm = ({
               type="file"
               multiple
               accept="image/*"
-              onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+              onChange={handleFileSelect}
               className="hidden"
               id="image-upload"
             />
@@ -189,21 +267,39 @@ const PropertyForm = ({
               </p>
             )}
           </div>
+
+          {/* Image Previews */}
+          {imagePreviews.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                  />
+                  <button
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Status */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-          <select
+          <Dropdown
+            options={statusOptions}
             value={propertyForm.status}
             onChange={(e) => setPropertyForm({...propertyForm, status: e.target.value})}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="sold">Sold</option>
-            <option value="inactive">Inactive</option>
-          </select>
+            placeholder="Select status"
+            className="w-full"
+          />
         </div>
       </div>
 
@@ -217,6 +313,7 @@ const PropertyForm = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PropertyForm;

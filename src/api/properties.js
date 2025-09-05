@@ -33,6 +33,29 @@ export const propertiesAPI = {
   // Get single property
   async getProperty(id) {
     return apiRequest(`/api/properties/${id}`);
+  },
+
+  // Get user's favorite properties
+  async getFavorites() {
+    return apiRequest('/api/favorites');
+  },
+
+  // Add property to favorites
+  async addToFavorites(propertyId) {
+    return apiRequest('/api/favorites', {
+      method: 'POST',
+      body: JSON.stringify({ propertyId }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  },
+
+  // Remove property from favorites
+  async removeFromFavorites(propertyId) {
+    return apiRequest(`/api/favorites/${propertyId}`, {
+      method: 'DELETE'
+    });
   }
 };
 

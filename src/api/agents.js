@@ -20,6 +20,17 @@ export const agentsAPI = {
     return apiRequest(`/api/admin/agents/${agentId}/reject`, {
       method: 'POST'
     });
+  },
+
+  // Contact an agent
+  async contactAgent(agentId, contactData) {
+    return apiRequest(`/api/agents/${agentId}/contact`, {
+      method: 'POST',
+      body: JSON.stringify(contactData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
 };
 
